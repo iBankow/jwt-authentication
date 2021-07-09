@@ -8,6 +8,7 @@ import { Database } from "./database";
 import { PasswordHash } from "./security/passwordHash";
 import { AuthenticationDTO } from "./dto/response/authentication.dto";
 import { UserDTO } from "./dto/response/user.dto";
+import { JWT } from "./security/jwt";
 
 const app = express();
 
@@ -15,12 +16,11 @@ app.use(express.json());
 
 Database.initialize();
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello There!');
+app.get("/", (req: Request, res: Response) => {
+  res.send("Hello There!");
 });
 
-app.post('/register', async (req: Request, res: Response) => {
-
+app.post("/register", async (req: Request, res: Response) => {
   try {
     const body: RegisterDTO = req.body;
 
@@ -44,22 +44,22 @@ app.post('/register', async (req: Request, res: Response) => {
     userDTO.username = user.username;
     userDTO.email = user.email;
 
+    const tokenAndRefreshToken = await JWT.generateToken(user);
     authenticationDTO.user = userDTO;
-
-
+    authenticationDTO.token = tokenAndRefreshToken.token;
+    authenticationDTO.refreshToken = tokenAndRefreshToken.refreshToken;
 
     res.json(authenticationDTO);
   } catch (error) {
     res.status(500).json({
-      message: error.message
-    })
+      message: error.message,
+    });
   }
-
-})
+});
 app.listen(4000, () => {
   console.log("Listening on PORT: 4000");
 });
 
 createConnection()
-  .then(async (connection) => { })
+  .then(async (connection) => {})
   .catch((error) => console.log(error));
